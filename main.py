@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import MODEL as md
 
 # Stock Selection
-stocks = ['None','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOGL','META','MSFT','NVDA','TSLAS']
+stocks = ['None','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOGL','META','MSFT','NVDA','TSLA']
 name = st.selectbox("Select a stock:", stocks)
 if name=="None":
     st.write("welcome")
