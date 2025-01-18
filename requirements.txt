@@ -4,6 +4,7 @@ matplotlib-inline==0.1.7
 numpy==1.26.4
 optuna==4.1.0
 pandas==2.2.3
+dotenv
 pymongo==4.10.1
 requests==2.32.3
 scikit-learn==1.6.0
