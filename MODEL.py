@@ -7,11 +7,11 @@ from keras.optimizers import Adam, RMSprop
 import optuna
 import tensorflow as tf
 import joblib
-from DB import Find_File
+from DB import get_data
 np.random.seed(42)
 tf.random.set_seed(42)
 def data(name):
-    file=Find_File(name)
+    file=get_data(name)
     file=file[-(10*365):]
     return file
 #file=data("AAPL")
