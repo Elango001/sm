@@ -13,7 +13,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 # Stock Selection
-stocks = ['Select a stock','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOGL','META','MSFT','NVDA','TSLA']
+stocks = ['Select a stock','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOG','META','MSFT','NVDA','TSLA']
 name = st.selectbox("Select a stock:", stocks)
 if name=="Select a stock":
     st.write("welcome")
