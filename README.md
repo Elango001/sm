@@ -57,7 +57,7 @@ Contributions are welcome! If you'd like to improve this project, feel free to f
 For any questions or feedback, feel free to reach out!
 
 - **Email**: elangos195@gmail.com
-- **GitHub**: (https://github.com/Elango001/)
+- **GitHub**: https://github.com/Elango001
 
 ---
 
