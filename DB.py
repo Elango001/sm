@@ -16,8 +16,6 @@ def get_data(name):
     
     new = {}  # Create an empty dictionary to store reformatted data
     new["Date"] = df.index.values  # Extract dates from the index
-    print(new["Date"].shape)  # Print the shape of the Date array for debugging
-    
     # Reshape and store individual columns into the dictionary
     new["Close"] = df["Close"].values.reshape(len(df["Close"].values))  
     new["High"] = df["High"].values.reshape(len(df["High"].values))  
