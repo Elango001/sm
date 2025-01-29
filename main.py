@@ -16,7 +16,7 @@ st.markdown(
 stocks = ['Select a stock','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOG','META','MSFT','NVDA','TSLA']
 name = st.selectbox("Select a stock:", stocks)
 if name=="Select a stock":
-    st.markdown("""###Welcome""")
+    st.markdown("""**Welcome**""")
 # Cached Data Loading
 else:
     @st.cache_data
