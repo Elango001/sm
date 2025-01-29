@@ -1,6 +1,8 @@
-import streamlit as st
-import matplotlib.pyplot as plt
-import MODEL as md
+import streamlit as st  # Import Streamlit for web app interface
+import matplotlib.pyplot as plt  # Import Matplotlib for plotting graphs
+import MODEL as md  # Import custom module 'MODEL' containing functions for stock prediction
+
+# Display a disclaimer about the stock prediction model
 st.markdown(
     """
     ### Disclaimer:
@@ -10,99 +12,131 @@ st.markdown(
     Stock markets are influenced by a wide range of factors, and no model can guarantee future performance. 
     Use this model at your own risk, and always consult with a professional financial advisor before making any investment decisions.
     """,
-    
 )
-# Stock Selection
+
+# Dropdown for selecting a stock from a predefined list
 stocks = ['Select a stock','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOG','META','MSFT','NVDA','TSLA']
 name = st.selectbox("Select a stock:", stocks)
-if name=="Select a stock":
+
+# If no stock is selected, display a welcome message
+if name == "Select a stock":
     st.markdown("""**Welcome**""")
-# Cached Data Loading
+
+# If a stock is selected, load its data
 else:
-    @st.cache_data
+    @st.cache_data  # Cache the function to optimize performance
     def load_data(stock_name):
-        return md.data(stock_name)
-    file = load_data(name)
-    st.write("Loaded Data:", file)
+        return md.data(stock_name)  # Fetch stock data using function from 'MODEL'
+
+    file = load_data(name)  # Load stock data
+    st.write("Loaded Data:", file)  # Display the loaded data
+
+    # Load necessary preprocessing functions from MODEL
     predictor, target, scalar_data, scalar_target = md.imp()
+    
+    # Process data and extract features
     file = md.features(file)
+
+    # Split the data into training and testing sets
     Xtrain, ytrain, Xtest, ytest = md.data_split(file, predictor, target, scalar_data, scalar_target)
-    @st.cache_resource
+
+    @st.cache_resource  # Cache the trained model
     def train_model(Xtrain, ytrain, Xtest, ytest):
-        return md.model(Xtrain, ytrain, Xtest, ytest)
-    model =train_model(Xtrain, ytrain, Xtest, ytest)
-    def plot_predictions_with_dates(file, Xtrain,Xtest ,ytrain,ytest, scalar_target):
-        actual = scalar_target.inverse_transform(ytrain)
-        pred = model.predict(Xtrain)
-        pred_train = scalar_target.inverse_transform(pred)
-        dates=file["Date"][:len(actual)]
+        return md.model(Xtrain, ytrain, Xtest, ytest)  # Train and return the model
+
+    model = train_model(Xtrain, ytrain, Xtest, ytest)  # Train the model
+
+    # Function to plot actual vs predicted stock prices
+    def plot_predictions_with_dates(file, Xtrain, Xtest, ytrain, ytest, scalar_target):
+        actual = scalar_target.inverse_transform(ytrain)  # Convert scaled values to actual prices
+        pred = model.predict(Xtrain)  # Predict on training data
+        pred_train = scalar_target.inverse_transform(pred)  # Convert predictions back to actual prices
+
+        dates = file["Date"][:len(actual)]  # Get corresponding dates for training data
+
+        # Plot actual vs predicted training data
         fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(dates, actual )
-        ax.plot(dates, pred_train )
-        dates=file["Date"][-len(ytest):]
-        actual_test=scalar_target.inverse_transform(ytest)
-        pred_test=model.predict(Xtest)
-        pred_test=scalar_target.inverse_transform(pred_test)
-        ax.plot(dates,actual_test)
-        ax.plot(dates,pred_test)
-        ax.legend(["actual_train","predict_train","actual_test","predict_test"])
+        ax.plot(dates, actual)  # Plot actual prices
+        ax.plot(dates, pred_train)  # Plot predicted prices
+
+        # Predict on test data
+        dates = file["Date"][-len(ytest):]
+        actual_test = scalar_target.inverse_transform(ytest)
+        pred_test = model.predict(Xtest)
+        pred_test = scalar_target.inverse_transform(pred_test)
+
+        # Plot actual vs predicted test data
+        ax.plot(dates, actual_test)
+        ax.plot(dates, pred_test)
+        ax.legend(["Actual Train", "Predicted Train", "Actual Test", "Predicted Test"])
         ax.set_title(f"Stock Predictions for {name}", fontsize=16)
         ax.set_xlabel("Date", fontsize=12)
         ax.set_ylabel("Stock Price", fontsize=12)
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
-        return fig
-    fig = plot_predictions_with_dates(file, Xtrain,Xtest, ytrain,ytest, scalar_target)
-    st.pyplot(fig)
 
-    perf = md.model_performance(model, Xtest, ytest, scalar_target)
-    st.write("Prediction Error:",perf["RMSE"])
-    st.write("Pattern Explained:",perf["R2"])
-    def pred_or(model,file,scalar_data,scalar_target,num_days=10):
-        return md.model_pred(model,file[predictor],scalar_data,scalar_target,num_days)
-    predicted=pred_or(model,file,scalar_data,scalar_target,num_days=10)
-    def pred_plot(predicted,num_days=10):
-        fig,ax=plt.subplots(figsize=(12,6))
-        ax.plot(predicted)
-        ax.legend([f"predicted next {num_days}"])
         return fig
-    new_fig=pred_plot(predicted)
-    st.pyplot(new_fig)
-    def plot_features(file,data,days):
-        fig,ax=plt.subplots(figsize=(12,6))
-        if data=="SMA":
-            ax.plot(file["Date"],file["Close"])
-            file[f"SMA{days}"]=file["Close"].rolling(window=days).mean()
-            ax.plot(file["Date"],file[f"SMA{days}"])
-            ax.legend([f"Stock Data","SMA{days}"])
-            ax.set_xlabel("Date", fontsize=12)
-            ax.set_ylabel("Stock Price", fontsize=12)
-            plt.xticks(rotation=45)
-            return fig
-        if data=="EMA":
-            ax.plot(file["Date"],file["Close"])
-            file[f"EMA{days}"]=file["Close"].ewm(span=days,adjust=False).mean()
-            ax.plot(file["Date"],file[f"EMA{days}"])
-            ax.legend([f"Stock Data","EMA{days}"])
-            ax.set_xlabel("Date", fontsize=12)
-            ax.set_ylabel("Stock Price", fontsize=12)
-            plt.xticks(rotation=45)
-            return fig
-        if data=="Bollinger Up and Bollinger Down":
-            ax.plot(file["Date"],file["Close"])
+
+    fig = plot_predictions_with_dates(file, Xtrain, Xtest, ytrain, ytest, scalar_target)  
+    st.pyplot(fig)  # Display the plot in the Streamlit app
+
+    # Evaluate the model's performance
+    perf = md.model_performance(model, Xtest, ytest, scalar_target)
+    st.write("Prediction Error:", perf["RMSE"])  # Display RMSE (Root Mean Squared Error)
+    st.write("Pattern Explained:", perf["R2"])  # Display R² score
+
+    # Function to predict future stock prices
+    def pred_or(model, file, scalar_data, scalar_target, num_days=10):
+        return md.model_pred(model, file[predictor], scalar_data, scalar_target, num_days)
+
+    predicted = pred_or(model, file, scalar_data, scalar_target, num_days=10)
+
+    # Function to plot future predictions
+    def pred_plot(predicted, num_days=10):
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.plot(predicted)  # Plot future predictions
+        ax.legend([f"Predicted Next {num_days} Days"])
+        return fig
+
+    new_fig = pred_plot(predicted)
+    st.pyplot(new_fig)  # Display future predictions plot
+
+    # Function to plot stock indicators (SMA, EMA, Bollinger Bands)
+    def plot_features(file, data, days):
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        if data == "SMA":  # Simple Moving Average
+            ax.plot(file["Date"], file["Close"])  # Plot stock closing price
+            file[f"SMA{days}"] = file["Close"].rolling(window=days).mean()  # Calculate SMA
+            ax.plot(file["Date"], file[f"SMA{days}"])  # Plot SMA line
+            ax.legend(["Stock Data", f"SMA{days}"])
+        
+        elif data == "EMA":  # Exponential Moving Average
+            ax.plot(file["Date"], file["Close"])
+            file[f"EMA{days}"] = file["Close"].ewm(span=days, adjust=False).mean()  # Calculate EMA
+            ax.plot(file["Date"], file[f"EMA{days}"])
+            ax.legend(["Stock Data", f"EMA{days}"])
+        
+        elif data == "Bollinger Up and Bollinger Down":  # Bollinger Bands
+            ax.plot(file["Date"], file["Close"])
             rolling_mean = file['Close'].rolling(window=20).mean()
             rolling_std = file['Close'].rolling(window=20).std()
-            file['Bollinger_Upper'] = rolling_mean + (rolling_std * 2)
-            file['Bollinger_Lower'] = rolling_mean - (rolling_std * 2)
-            ax.plot(file["Date"],file["Bollinger_Upper"])
-            ax.plot(file["Date"],file["Bollinger_Lower"])
-            ax.legend(["Stock Data","Bollinger_upper","Bollinger_lower"])
-            #plt.fill_between(file['Date'], file['Bollinger_Upper'], file['Bollinger_Lower'], color='gray')
-            ax.set_xlabel("Date", fontsize=12)
-            ax.set_ylabel("Stock Price", fontsize=12)
-            plt.xticks(rotation=45)
-            return fig    
-    data=st.selectbox(label="Select an option",options=["SMA","EMA","Bollinger Up and Bollinger Down"])
-    days=st.slider("Select the number of days",min_value=5,max_value=200,step=5,value=5)
-    fig=plot_features(file,data,days)
-    st.pyplot(fig)
+            file['Bollinger_Upper'] = rolling_mean + (rolling_std * 2)  # Upper Bollinger Band
+            file['Bollinger_Lower'] = rolling_mean - (rolling_std * 2)  # Lower Bollinger Band
+            ax.plot(file["Date"], file["Bollinger_Upper"])
+            ax.plot(file["Date"], file["Bollinger_Lower"])
+            ax.legend(["Stock Data", "Bollinger Upper", "Bollinger Lower"])
 
+        # Set axis labels and rotate x-axis labels for better readability
+        ax.set_xlabel("Date", fontsize=12)
+        ax.set_ylabel("Stock Price", fontsize=12)
+        plt.xticks(rotation=45)
+
+        return fig    
+
+    # Streamlit widgets for selecting technical indicators
+    data = st.selectbox(label="Select an option", options=["SMA", "EMA", "Bollinger Up and Bollinger Down"])
+    days = st.slider("Select the number of days", min_value=5, max_value=200, step=5, value=5)
+
+    # Plot selected indicator and display it in the app
+    fig = plot_features(file, data, days)
+    st.pyplot(fig)
