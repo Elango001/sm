@@ -10,13 +10,13 @@ st.markdown(
     Stock markets are influenced by a wide range of factors, and no model can guarantee future performance. 
     Use this model at your own risk, and always consult with a professional financial advisor before making any investment decisions.
     """,
-    unsafe_allow_html=True,
+    
 )
 # Stock Selection
 stocks = ['Select a stock','AAPL','ADBE','GOOGL','AMZN','AVGO','GOOG','META','MSFT','NVDA','TSLA']
 name = st.selectbox("Select a stock:", stocks)
 if name=="Select a stock":
-    st.markdown("""###**welcome**""")
+    st.markdown("""###welcome""")
 # Cached Data Loading
 else:
     @st.cache_data
