@@ -1,7 +1,7 @@
 import streamlit as st  # Import Streamlit for web app interface
 import matplotlib.pyplot as plt  # Import Matplotlib for plotting graphs
 import MODEL as md  # Import custom module 'MODEL' containing functions for stock prediction
-
+import pandas as pd
 # Display a disclaimer about the stock prediction model
 st.markdown(
     """
@@ -90,14 +90,23 @@ else:
 
     predicted = pred_or(model, file, scalar_data, scalar_target, num_days=10)
 
+    from datetime import datetime, timedelta
+
+    def get_next_10_dates(start_date, date_format="%Y-%m-%d"):
+            # Ensure start_date is a single string, not a Series
+        start = datetime.strptime(start_date, date_format)
+        next_dates = [(start + timedelta(days=i)).strftime(date_format) for i in range(1, 11)]
+        return next_dates
     # Function to plot future predictions
-    def pred_plot(predicted, num_days=10):
+    def pred_plot(predicted,date,num_days=10):
         fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(predicted)  # Plot future predictions
+        dates=get_next_10_dates(date)
+        ax.plot(dates,predicted,marker="o")  # Plot future predictions
         ax.legend([f"Predicted Next {num_days} Days"])
         return fig
-
-    new_fig = pred_plot(predicted)
+    date=file["Date"].iloc[-1]
+    date = date.strftime("%Y-%m-%d")
+    new_fig = pred_plot(predicted,date)
     st.pyplot(new_fig)  # Display future predictions plot
 
     # Function to plot stock indicators (SMA, EMA, Bollinger Bands)
