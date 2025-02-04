@@ -24,6 +24,7 @@ if name == "Select a stock":
 
 # If a stock is selected, load its data
 else:
+    @st.cache_data
     def load_data(stock_name):
         return md.data(stock_name)  # Fetch stock data using function from 'MODEL'
     file = load_data(name)  # Load stock data
@@ -31,8 +32,6 @@ else:
         st.write("There seems to some error!")
     else:
         st.write("Loaded Data:", file)  # Display the loaded data
-        final_file=file[-10:]
-        file=file[:-10]
         # Load necessary preprocessing functions from MODEL
         predictor, target, scalar_data, scalar_target = md.imp()
     
@@ -99,17 +98,15 @@ else:
             next_dates = [(start + timedelta(days=i)).strftime(date_format) for i in range(1, 11)]
             return next_dates
     # Function to plot future predictions
-        def pred_plot(predicted,date,final_file,num_days=10):
+        def pred_plot(predicted,date,num_days=10):
             fig, ax = plt.subplots(figsize=(12, 6))
             dates=get_next_10_dates(date)
             ax.plot(dates,predicted,marker="o")  # Plot future predictions
-            ax.plot(dates,final_file["Close"],marker="*")
             ax.label([f"Predicted Next {num_days} Days"])
-            ax.legend(["predicted","actual"])
             return fig
         date=file["Date"].iloc[-1]
         date = date.strftime("%Y-%m-%d")
-        new_fig = pred_plot(predicted,final_file,date)
+        new_fig = pred_plot(predicted,date)
         st.pyplot(new_fig)  # Display future predictions plot
 
     # Function to plot stock indicators (SMA, EMA, Bollinger Bands)
