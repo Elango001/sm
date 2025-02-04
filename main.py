@@ -27,7 +27,7 @@ else:
     def load_data(stock_name):
         return md.data(stock_name)  # Fetch stock data using function from 'MODEL'
     file = load_data(name)  # Load stock data
-    if(file.index):
+    if(file.index==None):
         st.write("There seems to some error!")
     else:
         st.write("Loaded Data:", file)  # Display the loaded data
